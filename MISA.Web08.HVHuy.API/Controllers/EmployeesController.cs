@@ -16,6 +16,46 @@ namespace MISA.Web08.HVHuy.API.Controllers
     public class EmployeesController : ControllerBase
     {
         /// <summary>
+        /// Lấy thông tin một nhân viên bằng id
+        /// </summary>
+        /// <param name="employeeid"></param>
+        /// <returns></returns>
+        [HttpGet("{employeeid}")]
+        public IActionResult GetEmployeeByID([FromRoute] Guid employeeID)
+        {
+
+            try
+            {
+                //Khởi tạo kết nối với MySQl
+                string connectionString = "Server=localhost; Port = 3306; Database = misa.web08.hvhuy; User Id=root; Password = huyhuy123";
+                var mysqlConnection = new MySqlConnection(connectionString);
+
+                string storeProdureName = "Proc_employee_InformationEmployee";
+
+                //CHuẩn bị tham số đầu vào cho câu lệnh MySQL
+                var parameters = new DynamicParameters();
+                parameters.Add("EmployeeID", employeeID);
+
+                //Thực hiện gọi vào DB
+                var numberOfAffectedRows = mysqlConnection.QueryFirstOrDefault(storeProdureName, parameters, commandType: System.Data.CommandType.StoredProcedure);
+
+                return StatusCode(StatusCodes.Status200OK, numberOfAffectedRows);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResult(
+                    AmisErrorCode.Exception,
+                    Resource.DevMsg_ExceptionFailed,
+                    Resource.UserMsg_ExceptionFailed,
+                    Resource.MoreInfo_ExceptionFailed,
+                    HttpContext.TraceIdentifier));
+            }
+
+        }
+
+        /// <summary>
         /// API thêm mới một nhân viên
         /// </summary>
         [HttpPost]
