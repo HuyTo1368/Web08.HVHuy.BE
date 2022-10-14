@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MISA.Web08.HVHuy.API.Attributes;
 using MISA.Web08.HVHuy.API.Controllers.DTO;
@@ -15,6 +14,44 @@ namespace MISA.Web08.HVHuy.API.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+        [HttpGet]
+        [Route("newEmployeeCode")]
+        public IActionResult GetNewEmployeeCode()
+        {
+            try
+            {
+                //Khởi tạo kết nối với MySQl
+                string connectionString = "Server=localhost; Port = 3306; Database = misa.web08.hvhuy; User Id=root; Password = huyhuy123";
+                var mysqlConnection = new MySqlConnection(connectionString);
+
+                string storeProdureName = "Proc_employee_GetMaxCode";
+
+                //CHuẩn bị tham số đầu vào cho câu lệnh MySQL
+
+                //Thực hiện gọi vào DB
+                var maxCode = mysqlConnection.QueryFirstOrDefault(storeProdureName, commandType: System.Data.CommandType.StoredProcedure);
+
+                maxCode = (string)maxCode.MaxCode;
+                maxCode = maxCode.Substring(2);
+
+                int max = (int)maxCode;
+
+
+                return StatusCode(StatusCodes.Status200OK, max);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResult(
+                    AmisErrorCode.Exception,
+                    Resource.DevMsg_ExceptionFailed,
+                    Resource.UserMsg_ExceptionFailed,
+                    Resource.MoreInfo_ExceptionFailed,
+                    HttpContext.TraceIdentifier));
+            }
+        }
+
         /// <summary>
         /// Lấy thông tin một nhân viên bằng id
         /// </summary>
@@ -68,7 +105,7 @@ namespace MISA.Web08.HVHuy.API.Controllers
                 var validateFailures = new List<string>();
                 foreach (var property in properties)
                 {
-                    string propertyName = property.Name;  
+                    string propertyName = property.Name;
                     var propertyValue = property.GetValue(employee);
                     var isNotNullOrEmptyAttribute = (IsNotNullOrEmptyAttribute?)Attribute.GetCustomAttribute(property, typeof(IsNotNullOrEmptyAttribute));
                     if (isNotNullOrEmptyAttribute != null && string.IsNullOrEmpty(propertyValue?.ToString()))
@@ -154,7 +191,7 @@ namespace MISA.Web08.HVHuy.API.Controllers
         /// API sửa thông tin nhân viên
         /// </summary>
         [HttpPut("{employeeid}")]
-        public IActionResult UpdateEmployee([FromRoute] Guid employeeID, [FromBody] Employee employee)
+        public IActionResult UpdateEmployee([FromRoute] Guid employeeid, [FromBody] Employee employee)
         {
             try
             {
@@ -191,7 +228,7 @@ namespace MISA.Web08.HVHuy.API.Controllers
 
                 var parameters = new DynamicParameters();
 
-                parameters.Add("EmployeeID", employeeID);
+                parameters.Add("EmployeeID", employeeid);
                 parameters.Add("EmployeeCode", employee.EmployeeCode);
                 parameters.Add("FullName", employee.FullName);
                 parameters.Add("DateOfBirth", employee.DateOfBirth);
@@ -218,7 +255,7 @@ namespace MISA.Web08.HVHuy.API.Controllers
 
                 if (numberOfAffectedRows > 0)
                 {
-                    return StatusCode(StatusCodes.Status201Created, employeeID);
+                    return StatusCode(StatusCodes.Status201Created, employeeid);
                 }
                 else
                 {

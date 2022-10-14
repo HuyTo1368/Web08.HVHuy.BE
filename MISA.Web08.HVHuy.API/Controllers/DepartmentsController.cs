@@ -21,12 +21,14 @@ namespace MISA.Web08.HVHuy.API.Controllers
             
             try
             {
+                // Khởi tạo kết nối tới DB My SQL
                 string connectionString = "Server=localhost; Port = 3306; Database = misa.web08.hvhuy; User Id=root; Password = huyhuy123";
                 var mysqlConnection = new MySqlConnection(connectionString);
 
                 // Chuẩn bị câu lênh SQL
                 string storedProcedureName = "Proc_department_GetDepartment";
 
+                // Gọi vào DB 
                 var departements = mysqlConnection.Query(storedProcedureName, commandType: System.Data.CommandType.StoredProcedure);
 
                 return StatusCode(StatusCodes.Status200OK, departements);
@@ -34,7 +36,7 @@ namespace MISA.Web08.HVHuy.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, "e001");
+                return StatusCode(StatusCodes.Status500InternalServerError, Guid.NewGuid());
             }
         }
     }
